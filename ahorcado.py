@@ -1,7 +1,7 @@
 import random
 import streamlit as st
 
-from nltk.corpus import cess_esp
+from base64 import b64decode
 from streamlit_js_eval import streamlit_js_eval
 from unidecode import unidecode
 
@@ -28,10 +28,11 @@ st.header("Ahorcado")
 
 state = st.session_state
 if "answer" not in state or state.answer == "":
-    # Get all Spanish words
-    spanish_words = [word.lower() for sentence in cess_esp.sents()[:200] for word in sentence if len(word) >= 5 and word.isalpha()]
+    # Get and decode a word from the encoded dictionary
+    with open("media/dictionary_encoded.txt", 'r') as file:
+        line = random.choice(file.readlines())
+    state["answer"] = b64decode(line.encode()).decode().strip().upper()
 
-    state["answer"] = random.choice(spanish_words).upper()
     state["known_letters"] = set()
     state.known_letters.add(remove_accents(state.answer[0]))
     state.known_letters.add(remove_accents(state.answer[-1]))
