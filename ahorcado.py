@@ -1,7 +1,6 @@
 import random
 import streamlit as st
 
-from base64 import b64decode
 from streamlit_js_eval import streamlit_js_eval
 from unidecode import unidecode
 
