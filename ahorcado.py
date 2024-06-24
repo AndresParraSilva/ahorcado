@@ -125,6 +125,7 @@ if attempts > 0:
         st.image(f"media/hanged_{min(6, attempts)}.png")
         if not state.finished:
             st.audio("media/suspense_low_vol.mp3", loop=True, autoplay=True)
+        st.page_link("https://github.com/AndresParraSilva/ahorcado", label="Andrés Parra")
 
 if state.finished and st.button("Volver a jugar"):
     state.answer = ""
