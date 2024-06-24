@@ -28,10 +28,10 @@ st.header("Ahorcado")
 
 state = st.session_state
 if "answer" not in state or state.answer == "":
-    # Get and decode a word from the encoded dictionary
-    with open("media/dictionary_encoded.txt", 'r') as file:
+    # Get a word from the dictionary
+    with open("media/dictionary.txt", 'r') as file:
         line = random.choice(file.readlines())
-    state["answer"] = b64decode(line.encode()).decode().strip().upper()
+    state["answer"] = line.strip().upper()
 
     state["known_letters"] = set()
     state.known_letters.add(remove_accents(state.answer[0]))
