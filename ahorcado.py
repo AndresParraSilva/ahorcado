@@ -1,4 +1,3 @@
-import locale
 import streamlit as st
 from datetime import date, datetime, timedelta
 from streamlit_js_eval import streamlit_js_eval
@@ -31,8 +30,6 @@ st.header("Ahorcado")
 # DB connection
 state.conn = db_get_connection()
 
-locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
-
 if "fecha" not in state:
     state["fecha"] = date.today()
     state.answer = ""
@@ -43,7 +40,7 @@ if not state.answer:
     # Get a word from the db
     state.palabra_y_defs = db_get_palabra_fecha(state.conn, state.fecha)
     if not state.palabra_y_defs:
-        st.write(f"No hay palabra para la fecha {state.fecha.strftime('%d de %B de %Y')}")
+        st.write(f"No hay palabra para la fecha {fecha_formateada(state.fecha)}")
         state.answer = ""
     else:
         state["answer"] = state.palabra_y_defs[1].upper()
@@ -57,7 +54,7 @@ if state.answer:
     if state.fecha == date.today():
         st.subheader("¡Palabra del día!")
     else:
-        st.subheader(f"Palabra del {state.fecha.strftime('%d de %B de %Y')}")
+        st.subheader(f"Palabra del {fecha_formateada(state.fecha)}")
 
     c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16, c17, c18, c19, c20, c21, c22, c23, c24, c25, c26 = st.columns(27)
     with c0:
