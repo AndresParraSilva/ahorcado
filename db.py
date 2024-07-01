@@ -21,7 +21,13 @@ def db_setup(conn):
                 definicion_ia TEXT,
                 definicion_rae TEXT,
                 fecha_destacada TIMESTAMP
-            )
+            );
+            CREATE TABLE IF NOT EXISTS log (
+                log_id INTEGER PRIMARY KEY,
+                palabra_id INTEGER,
+                falladas TEXT,
+                fecha TIMESTAMP
+            );
         ''')
     def_ia = """La palabra "pingüe" es un adjetivo que describe algo muy abundante, fértil, opulento o rico. Se utiliza principalmente para destacar la abundancia o la riqueza de algo, ya sea en términos materiales o cualitativos.
 
@@ -32,9 +38,11 @@ Curiosamente, aunque su uso no es extremadamente común en el lenguaje cotidiano
     conn.execute(f'INSERT INTO palabras (palabra, definicion_ia, definicion_rae, fecha_destacada) VALUES (?, ?, ?, ?);', ("pingüe", def_ia, def_rae, date.today()))
     conn.commit()
 
+
 def db_get_m_fechas(conn):
     cursor = conn.cursor()
     return cursor.execute("SELECT MIN(fecha_destacada) AS min_fecha, MAX(fecha_destacada) AS max_fecha FROM palabras").fetchone()
+
 
 def db_insert_palabra(conn, palabra, definicion_ia, definicion_rae, fecha_destacada):
     cursor = conn.cursor()
@@ -42,6 +50,14 @@ def db_insert_palabra(conn, palabra, definicion_ia, definicion_rae, fecha_destac
     conn.commit()
     return cursor.lastrowid
 
+
 def db_get_palabra_fecha(conn, fecha):
     cursor = conn.cursor()
     return cursor.execute("SELECT palabra_id, palabra, definicion_ia, definicion_rae FROM palabras WHERE fecha_destacada=?", (fecha, )).fetchone()
+
+
+def db_insert_log(conn, palabra_id, falladas, fecha):
+    cursor = conn.cursor()
+    cursor.execute(f'INSERT INTO log (palabra_id, falladas, fecha) VALUES (?, ?, ?);', (palabra_id, falladas, fecha))
+    conn.commit()
+    return cursor.lastrowid

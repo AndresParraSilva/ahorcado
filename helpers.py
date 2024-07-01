@@ -1,11 +1,10 @@
 import re
+import socket
 import streamlit as st
 from datetime import datetime
-from openai import OpenAI, OpenAIError
 
 from db import *
 
 
-@st.cache_resource
-def get_client():
-    return OpenAI()
+def log_result(conn, palabra_id, falladas):
+    db_insert_log(conn, palabra_id, falladas, datetime.now())

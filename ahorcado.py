@@ -1,10 +1,11 @@
-import random
+import locale
 import streamlit as st
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from streamlit_js_eval import streamlit_js_eval
 from unidecode import unidecode
 
 from db import *
+from helpers import *
 
 def reload():
     streamlit_js_eval(js_expressions="parent.window.location.reload()")
@@ -30,16 +31,19 @@ st.header("Ahorcado")
 # DB connection
 state.conn = db_get_connection()
 
+locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+
 if "fecha" not in state:
     state["fecha"] = date.today()
     state.answer = ""
     state.finished = False
 
 if not state.answer:
+    state.logged = False
     # Get a word from the db
     state.palabra_y_defs = db_get_palabra_fecha(state.conn, state.fecha)
     if not state.palabra_y_defs:
-        st.write(f"No hay palabra para la fecha {state.fecha.strftime('%d/%m/%Y')}")
+        st.write(f"No hay palabra para la fecha {state.fecha.strftime('%d de %B de %Y')}")
         state.answer = ""
     else:
         state["answer"] = state.palabra_y_defs[1].upper()
@@ -53,7 +57,7 @@ if state.answer:
     if state.fecha == date.today():
         st.subheader("¡Palabra del día!")
     else:
-        st.subheader(f"Palabra del {state.fecha.strftime('%d/%m/%Y')}")
+        st.subheader(f"Palabra del {state.fecha.strftime('%d de %B de %Y')}")
 
     c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16, c17, c18, c19, c20, c21, c22, c23, c24, c25, c26 = st.columns(27)
     with c0:
@@ -125,12 +129,12 @@ if state.answer:
 
     st.subheader(shown_word)
 
+    attempts = len(state.attempted_letters)
+
     if all_known:
         st.header("¡Acertaste!")
         st.audio("media/win.mp3", loop=False, autoplay=True)
         state.finished = True
-
-    attempts = len(state.attempted_letters)
 
     if attempts == 6:
         st.header(f"¡Perdiste! La palabra era {state.answer}")
@@ -145,15 +149,35 @@ if state.answer:
             st.page_link("https://github.com/AndresParraSilva/ahorcado", label="© Andrés Parra")
 
     if state.finished:
+        if not state.logged:
+            log_result(state.conn, state.palabra_y_defs[0], "".join(sorted(state.attempted_letters)))
+            state.logged = True
+
         st.subheader(f"Acerca de {state.palabra_y_defs[1]}")
         st.write(state.palabra_y_defs[2])
         st.subheader("RAE")
         st.page_link(f"https://dle.rae.es/{state.palabra_y_defs[1]}", label=state.palabra_y_defs[1])
         st.write(state.palabra_y_defs[3])
 
-if state.finished and st.button("Jugar con la palabra del día anterior"):
+if state.finished and state.answer and st.button("Jugar con la palabra del día anterior"):
     state.answer = ""
     state.fecha = state.fecha - timedelta(days=1)
-    # keyboard("r")
-    # reload()
-    st.write("Presioná **r** para volver a jugar.")
+    st.rerun()
+
+if not state.answer and st.button("Jugar con la palabra del día"):
+    state.fecha = date.today()
+    st.rerun()
+
+if state.finished:
+    min_fecha, max_fecha = db_get_m_fechas(state.conn)
+    min_fecha = datetime.strptime(min_fecha, "%Y-%m-%d").date()
+    max_fecha = datetime.strptime(max_fecha, "%Y-%m-%d").date()
+    rerun = False
+    def update_fecha():
+        if "sel_fecha" in state and state.sel_fecha:
+            state.fecha = state.sel_fecha
+            rerun = True
+    st.date_input("O seleccionar día", value=max(state.fecha, min_fecha), min_value=min_fecha, max_value=date.today(), format="DD/MM/YYYY", on_change=update_fecha, key="sel_fecha")
+    if rerun:
+        state.answer = ""
+        st.rerun()

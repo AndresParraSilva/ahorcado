@@ -2,7 +2,7 @@ import random
 import re
 import streamlit as st
 from datetime import date, timedelta
-from openai import OpenAIError
+from openai import OpenAI, OpenAIError
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
@@ -10,6 +10,11 @@ from time import sleep
 
 from db import *
 from helpers import *
+
+
+@st.cache_resource
+def get_client():
+    return OpenAI()
 
 
 state = st.session_state
